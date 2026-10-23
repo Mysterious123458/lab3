@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "РБПО лабораторная 3, вариант 26",
+    "description": "CRUD и бизнес-операции городских обращений о благоустройстве",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "userId", "value": "1"},
+    {"key": "objectId", "value": "1"},
+    {"key": "crewId", "value": "1"},
+    {"key": "reportId", "value": "1"},
+    {"key": "orderId", "value": "1"}
+  ],
+  "item": [
+    {
+      "name": "Сценарий",
+      "item": [
+        {
+          "name": "1. Создать пользователя",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('userId', pm.response.json().id);"]}}],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Тимошенко Влад\",\n  \"email\": \"vlad.timoshenko@example.com\"\n}"}, "url": "{{baseUrl}}/api/users"}
+        },
+        {
+          "name": "2. Создать двор",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('objectId', pm.response.json().id);"]}}],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"address\": \"ул. Новая, 5, двор\",\n  \"type\": \"YARD\",\n  \"condition\": \"NEEDS_REPAIR\"\n}"}, "url": "{{baseUrl}}/api/city-objects"}
+        },
+        {
+          "name": "3. Создать бригаду с лимитом 1",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('crewId', pm.response.json().id);"]}}],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"name\": \"Срочная дворовая бригада\",\n  \"supportedTypes\": [\"YARD\"],\n  \"activeWorkLimit\": 1\n}"}, "url": "{{baseUrl}}/api/work-crews"}
+        },
+        {
+          "name": "4. Создать обращение",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('reportId', pm.response.json().id);"]}}],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"cityObjectId\": {{objectId}},\n  \"authorId\": {{userId}},\n  \"description\": \"Провалилась плитка у второго подъезда\"\n}"}, "url": "{{baseUrl}}/api/city-reports"}
+        },
+        {
+          "name": "5. Назначить бригаду",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["if (pm.response.code === 200) pm.collectionVariables.set('orderId', pm.response.json().workOrder.id);"]}}],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"workCrewId\": {{crewId}},\n  \"dueDate\": \"2026-11-15\"\n}"}, "url": "{{baseUrl}}/api/city-reports/{{reportId}}/assign"}
+        },
+        {
+          "name": "6. Повторное назначение отклоняется",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"workCrewId\": {{crewId}},\n  \"dueDate\": \"2026-11-20\"\n}"}, "url": "{{baseUrl}}/api/city-reports/{{reportId}}/assign"}
+        },
+        {
+          "name": "7. Завершить наряд и обновить объект",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"resultDescription\": \"Плитку заменили\",\n  \"objectCondition\": \"GOOD\"\n}"}, "url": "{{baseUrl}}/api/work-orders/{{orderId}}/complete"}
+        },
+        {
+          "name": "8. Отклонить учебное обращение 3",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Фонарь уже заменён по другой заявке\"\n}"}, "url": "{{baseUrl}}/api/city-reports/3/reject"}
+        },
+        {
+          "name": "9. Передать парковый наряд той же бригаде нельзя",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"workCrewId\": 2\n}"}, "url": "{{baseUrl}}/api/work-orders/1/reassign"}
+        },
+        {
+          "name": "10. Отметить новый двор аварийным нельзя: открытых обращений уже нет",
+          "request": {"method": "POST", "header": [], "url": "{{baseUrl}}/api/city-objects/{{objectId}}/mark-emergency"}
+        },
+        {
+          "name": "11. Отметить парк аварийным: есть открытый наряд",
+          "request": {"method": "POST", "header": [], "url": "{{baseUrl}}/api/city-objects/2/mark-emergency"}
+        }
+      ]
+    },
+    {
+      "name": "Пользователи",
+      "item": [
+        {"name": "Список", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/users"}},
+        {"name": "По id", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/users/{{userId}}"}},
+        {"name": "Создать", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Новый житель\",\n  \"email\": \"resident@example.com\"\n}"}, "url": "{{baseUrl}}/api/users"}},
+        {"name": "Изменить", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"fullName\": \"Новый житель, кв. 4\"\n}"}, "url": "{{baseUrl}}/api/users/{{userId}}"}},
+        {"name": "Удалить", "request": {"method": "DELETE", "header": [], "url": "{{baseUrl}}/api/users/{{userId}}"}}
+      ]
+    },
+    {
+      "name": "Городские объекты",
+      "item": [
+        {"name": "Список", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/city-objects"}},
+        {"name": "По id", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/city-objects/{{objectId}}"}},
+        {"name": "Создать", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"address\": \"ул. Парковая, 2\",\n  \"type\": \"ROAD\",\n  \"condition\": \"SATISFACTORY\"\n}"}, "url": "{{baseUrl}}/api/city-objects"}},
+        {"name": "Изменить", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"condition\": \"NEEDS_REPAIR\"\n}"}, "url": "{{baseUrl}}/api/city-objects/{{objectId}}"}},
+        {"name": "Удалить", "request": {"method": "DELETE", "header": [], "url": "{{baseUrl}}/api/city-objects/{{objectId}}"}}
+      ]
+    },
+    {
+      "name": "Обращения",
+      "item": [
+        {"name": "Список", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/city-reports"}},
+        {"name": "По id", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/city-reports/{{reportId}}"}},
+        {"name": "Создать", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"cityObjectId\": 1,\n  \"authorId\": 1,\n  \"description\": \"Нужна замена бордюра\"\n}"}, "url": "{{baseUrl}}/api/city-reports"}},
+        {"name": "Изменить", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"description\": \"Нужна замена бордюра у проезда\"\n}"}, "url": "{{baseUrl}}/api/city-reports/{{reportId}}"}},
+        {"name": "Удалить", "request": {"method": "DELETE", "header": [], "url": "{{baseUrl}}/api/city-reports/{{reportId}}"}}
+      ]
+    },
+    {
+      "name": "Бригады",
+      "item": [
+        {"name": "Список", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/work-crews"}},
+        {"name": "По id", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/work-crews/{{crewId}}"}},
+        {"name": "Создать", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"name\": \"Дорожная бригада\",\n  \"supportedTypes\": [\"ROAD\", \"LIGHTING\"],\n  \"activeWorkLimit\": 2\n}"}, "url": "{{baseUrl}}/api/work-crews"}},
+        {"name": "Изменить", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"activeWorkLimit\": 3\n}"}, "url": "{{baseUrl}}/api/work-crews/{{crewId}}"}},
+        {"name": "Удалить", "request": {"method": "DELETE", "header": [], "url": "{{baseUrl}}/api/work-crews/{{crewId}}"}}
+      ]
+    },
+    {
+      "name": "Наряды",
+      "item": [
+        {"name": "Список", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/work-orders"}},
+        {"name": "По id", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/work-orders/{{orderId}}"}},
+        {"name": "Создать", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"cityReportId\": 1,\n  \"workCrewId\": 1,\n  \"dueDate\": \"2026-11-10\"\n}"}, "url": "{{baseUrl}}/api/work-orders"}},
+        {"name": "Изменить", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"}, "url": "{{baseUrl}}/api/work-orders/{{orderId}}"}},
+        {"name": "Удалить", "request": {"method": "DELETE", "header": [], "url": "{{baseUrl}}/api/work-orders/{{orderId}}"}}
+      ]
+    }
+  ]
+}
