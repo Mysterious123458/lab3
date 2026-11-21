@@ -40,7 +40,7 @@ public class WorkCrew {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected WorkCrew() {
+    public WorkCrew() {
     }
 
     public Long getId() {

@@ -47,7 +47,7 @@ public class WorkOrder {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected WorkOrder() {
+    public WorkOrder() {
     }
 
     public Long getId() {

@@ -34,7 +34,7 @@ public class WorkCrewController {
 
     @GetMapping
     public List<WorkCrewResponse> list() {
-        return workCrewService.findAll().stream().map(this::toResponse).toList();
+        return workCrewService.findAll().stream().map(WorkCrewController::toResponse).toList();
     }
 
     @GetMapping("/{id}")

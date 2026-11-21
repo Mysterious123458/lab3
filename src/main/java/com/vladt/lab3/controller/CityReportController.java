@@ -33,7 +33,7 @@ public class CityReportController {
 
     @GetMapping
     public List<CityReportResponse> list() {
-        return cityReportService.findAll().stream().map(this::toResponse).toList();
+        return cityReportService.findAll().stream().map(CityReportController::toResponse).toList();
     }
 
     @GetMapping("/{id}")

@@ -26,7 +26,7 @@ public class AppUser {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected AppUser() {
+    public AppUser() {
     }
 
     public Long getId() {

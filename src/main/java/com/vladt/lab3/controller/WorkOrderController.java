@@ -32,7 +32,7 @@ public class WorkOrderController {
 
     @GetMapping
     public List<WorkOrderResponse> list() {
-        return workOrderService.findAll().stream().map(this::toResponse).toList();
+        return workOrderService.findAll().stream().map(WorkOrderController::toResponse).toList();
     }
 
     @GetMapping("/{id}")

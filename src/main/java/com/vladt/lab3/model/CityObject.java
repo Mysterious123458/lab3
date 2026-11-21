@@ -33,7 +33,7 @@ public class CityObject {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected CityObject() {
+    public CityObject() {
     }
 
     public Long getId() {

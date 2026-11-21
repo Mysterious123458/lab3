@@ -50,7 +50,7 @@ public class CityReport {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected CityReport() {
+    public CityReport() {
     }
 
     public Long getId() {
